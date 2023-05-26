@@ -59,7 +59,7 @@ layout: default
 <br />
 <br />
 
-### `order`
+### `orders`
 @src: ./markdown/tables/order_full.md
 
 ---
@@ -114,7 +114,7 @@ layout: two-cols
 ```sql {|3}
 SELECT name, product_id, order_time
 FROM customer
-JOIN order ON (customer.id = order.customer_id)
+JOIN orders ON (customer.id = orders.customer_id)
 ```
 
 @src: ./markdown/tables/customer_full.md
@@ -214,7 +214,7 @@ layout: two-cols
 ```sql
 SELECT name, product_id, order_time
 FROM customer
-JOIN order ON (customer.id = order.customer_id)
+JOIN orders ON (customer.id = orders.customer_id)
 WHERE name = 'Eve Entropia'
 AND order_time > 2022-01-01;
 ```
@@ -224,7 +224,7 @@ AND order_time > 2022-01-01;
 ```mermaid
 flowchart TB
     tb1(customer) --> j
-    tb2(order) --> j
+    tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl
     sl("σ<sub>name = 'Eve Entropia' ∧ order_time > 2022-01-01</sub>") --> pr
     pr(Π<sub>name, product_id, order_time</sub>)
@@ -257,7 +257,7 @@ layout: two-cols
 ```sql {|5}
 SELECT name, product_id, order_time
 FROM customer
-JOIN order ON (customer.id = order.customer_id)
+JOIN orders ON (customer.id = orders.customer_id)
 WHERE name = 'Eve Entropia'
 AND order_time > 2022-01-01;
 ```
@@ -267,7 +267,7 @@ AND order_time > 2022-01-01;
 ```mermaid
 flowchart TB
     tb1(customer) --> j
-    tb2(order) --> j
+    tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl1
     sl1("σ<sub>name = 'Eve Entropia'</sub>") --> sl2
     sl2("σ<sub>order_time > 2022-01-01</sub>") --> pr
@@ -282,7 +282,7 @@ layout: two-cols
 ```mermaid
 flowchart TB
     tb1(customer) --> j
-    tb2(order) --> j
+    tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl1
     sl1("σ<sub>name = 'Eve Entropia'</sub>") --> sl2
     sl2("σ<sub>order_time > 2022-01-01</sub>") --> pr
@@ -294,7 +294,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     tb1(customer) --> sl1
-    tb2(order) --> sl2
+    tb2(orders) --> sl2
     sl1("σ<sub>name = 'Eve Entropia'</sub>") --> j
     sl2("σ<sub>order_time > 2022-01-01</sub>") --> j
     j("⋈<sub>id = customer_id</sub>") --> pr
@@ -315,8 +315,8 @@ layout: two-cols
 ```sql {|3-4}
 SELECT *
 FROM customer
-JOIN order ON (customer.id = order.customer_id)
-JOIN product ON (order.product_id = product.id);
+JOIN orders ON (customer.id = orders.customer_id)
+JOIN product ON (orders.product_id = product.id);
 ```
 
 <v-click>
@@ -329,7 +329,7 @@ JOIN product ON (order.product_id = product.id);
 ```mermaid
 flowchart TB
     tb1(customer) --> j1
-    tb2(order) --> j1
+    tb2(orders) --> j1
     j1("⋈<sub>id = customer_id</sub>") --> j2
     tb3(product) --> j2
     j2("⋈<sub>product_id = id</sub>") --> pr
@@ -386,3 +386,64 @@ layout: default
 * So, we get a different result than the one from the 'naive' plan
 ca. 20 min
 -->
+
+---
+layout: default
+class: bootstrap
+---
+
+<pev2 :plan-source="`
+[
+  {
+    &quot;Plan&quot;: {
+      &quot;Node Type&quot;: &quot;Seq Scan&quot;,
+      &quot;Parallel Aware&quot;: false,
+      &quot;Async Capable&quot;: false,
+      &quot;Relation Name&quot;: &quot;product&quot;,
+      &quot;Schema&quot;: &quot;public&quot;,
+      &quot;Alias&quot;: &quot;product&quot;,
+      &quot;Startup Cost&quot;: 0.00,
+      &quot;Total Cost&quot;: 1791.00,
+      &quot;Plan Rows&quot;: 924,
+      &quot;Plan Width&quot;: 9,
+      &quot;Output&quot;: [&quot;id&quot;, &quot;has_foo&quot;, &quot;length_of_bar&quot;],
+      &quot;Filter&quot;: &quot;(product.length_of_bar < '1'::double precision)&quot;,
+      &quot;Shared Hit Blocks&quot;: 0,
+      &quot;Shared Read Blocks&quot;: 0,
+      &quot;Shared Dirtied Blocks&quot;: 0,
+      &quot;Shared Written Blocks&quot;: 0,
+      &quot;Local Hit Blocks&quot;: 0,
+      &quot;Local Read Blocks&quot;: 0,
+      &quot;Local Dirtied Blocks&quot;: 0,
+      &quot;Local Written Blocks&quot;: 0,
+      &quot;Temp Read Blocks&quot;: 0,
+      &quot;Temp Written Blocks&quot;: 0
+    },
+    &quot;Planning&quot;: {
+      &quot;Shared Hit Blocks&quot;: 0,
+      &quot;Shared Read Blocks&quot;: 0,
+      &quot;Shared Dirtied Blocks&quot;: 0,
+      &quot;Shared Written Blocks&quot;: 0,
+      &quot;Local Hit Blocks&quot;: 0,
+      &quot;Local Read Blocks&quot;: 0,
+      &quot;Local Dirtied Blocks&quot;: 0,
+      &quot;Local Written Blocks&quot;: 0,
+      &quot;Temp Read Blocks&quot;: 0,
+      &quot;Temp Written Blocks&quot;: 0
+    }
+  }
+]
+`" plan-query="query"></pev2>
+
+
+---
+layout: default
+---
+
+## Recipe: Slow query
+* EXPLAIN ANALYZE
+    * look for big mismatches between estimated and actual rows
+    * not using indices you think it should?
+* Turn off certain planning nodes
+    * compare costs with original plan
+    * only ever do this for debugging!

@@ -1,7 +1,6 @@
 import { defineMermaidSetup } from '@slidev/types'
 
 export default defineMermaidSetup(() => {
-  console.log('hello')
   return {
     theme: "forest",
     fontFamily: '"Fira Sans"',

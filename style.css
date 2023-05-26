@@ -1,3 +1,14 @@
+@import './bootstrap-scoped.css';
+
 .mermaid {
     text-align: center;
+}
+
+.plan {
+    min-height: 100px;
+    min-width: 100px;
+}
+
+.plan-container {
+    height: 100%;
 }

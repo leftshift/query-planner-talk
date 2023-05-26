@@ -9,9 +9,14 @@
   "dependencies": {
     "@slidev/cli": "^0.40.16",
     "@slidev/theme-default": "*",
-    "@slidev/theme-seriph": "*"
+    "@slidev/theme-seriph": "*",
+    "bootstrap": "^4.5.0",
+    "css": "^3.0.0",
+    "pev2": "^1.8.0"
   },
   "devDependencies": {
-    "@iconify-json/tabler": "^1.1.74"
+    "@iconify-json/tabler": "^1.1.74",
+    "@types/css": "^0.0.33",
+    "@types/node": "^20.2.3"
   }
 }
