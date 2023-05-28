@@ -10,3 +10,10 @@ CREATE TABLE orders (
     product_id integer,
     order_time date
 );
+
+CREATE TABLE product (
+    id serial PRIMARY KEY,
+    number_of_foos integer,
+    length_of_bar float
+
+);
