@@ -13,6 +13,9 @@ export default defineMermaidSetup(() => {
     // resulting in different sizes?
     themeCSS: `
       sub { font-size: 75% }
-    `
+    `,
+    flowchart: {
+      rankSpacing: 40
+    }
   }
 });
