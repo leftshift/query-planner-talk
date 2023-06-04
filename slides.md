@@ -13,9 +13,8 @@ css: unocss
 layout: cover
 background: https://source.unsplash.com/collection/94734566/1920x1080
 title: Postgres Query Planning
+canvasWidth: 850
 ---
-
-TODO: Flip graphs to match PEV2?
 
 # Postgres Query Planning
 ## *How I learned to love the Query Planner*
@@ -65,10 +64,12 @@ layout: default
 @src: ./markdown/tables/order_full.md
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Projection Π
+
+::left::
 
 ```sql {|1}
 SELECT id, name
@@ -77,19 +78,27 @@ FROM customer;
 
 ::right::
 
+<v-click>
+
 @src: ./markdown/tables/customer_full.md
 
+</v-click>
+
+<v-click>
 <div class='text-center text-3xl p-5'>
-    <tabler-arrow-down /> Π<sub>customer_id, name</sub>
+    <tabler-arrow-down /> Π<sub>id, name</sub>
 </div>
 
 @src: ./markdown/tables/customer_projected.md
+</v-click>
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Selection σ
+
+::left::
 
 ```sql {|3}
 SELECT id, name
@@ -101,17 +110,21 @@ WHERE registration_date > 2021-01-01;
 
 @src: ./markdown/tables/customer_full.md
 
+<v-click>
 <div class='text-center text-3xl p-5'>
     <tabler-arrow-down /> σ<sub>registration_date > 2021-01-01</sub>
 </div>
 
 @src: ./markdown/tables/customer_selected.md
+</v-click>
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Join ⋈<sub>θ</sub>
+
+::left::
 
 ```sql {|3}
 SELECT name, product_id, order_time
@@ -121,13 +134,14 @@ JOIN orders ON (customer.id = orders.customer_id)
 
 @src: ./markdown/tables/customer_full.md
 
-<div class='text-center text-3xl p-5'>
+<div class='text-center text-3xl p-1'>
     <tabler-plus />
 </div>
 
 @src: ./markdown/tables/order_full.md
 
 ::right::
+<v-click>
 
 <div class='text-center text-3xl p-5'>
     <tabler-arrow-down /> ⋈<sub>id = customer_id</sub>
@@ -135,6 +149,7 @@ JOIN orders ON (customer.id = orders.customer_id)
 
 @src: ./markdown/tables/customer_order_join.md
 
+</v-click>
 ---
 layout: section
 ---
@@ -159,7 +174,7 @@ WHERE registration_date > 2021-01-01;
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb(customer) --> sl
     sl(σ<sub>registration_date > 2021-01-01</sub>) -->  pr(Π<sub>name</sub>) 
 
@@ -181,10 +196,12 @@ We can *throw away* some columns earlier if we want to.
 </v-click>
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Optimisation: Project early
+
+::left::
 
 ```sql
 SELECT name
@@ -201,7 +218,7 @@ WHERE registration_date > 2021-01-01;
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb(customer) --> pr1
     pr1(Π<sub>name, registration_date</sub>) --> sl
     sl(σ<sub>registration_date > 2021-01-01</sub>) -->  pr2(Π<sub>name</sub>) 
@@ -224,7 +241,7 @@ AND order_time > 2022-01-01;
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb1(customer) --> j
     tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl
@@ -251,12 +268,14 @@ $$
 </v-clicks>
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Optimisation: Push up selection
 
-```sql {|5}
+::left::
+
+```sql
 SELECT name, product_id, order_time
 FROM customer
 JOIN orders ON (customer.id = orders.customer_id)
@@ -267,7 +286,7 @@ AND order_time > 2022-01-01;
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb1(customer) --> j
     tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl1
@@ -276,13 +295,20 @@ flowchart TB
     pr(Π<sub>name, product_id, order_time</sub>)
 ```
 
+<!--
+* Note: Each selection only applies to a single table!
+-->
+
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## Optimisation: Push up selection
+
+::left::
+
 ```mermaid
-flowchart TB
+flowchart BT
     tb1(customer) --> j
     tb2(orders) --> j
     j("⋈<sub>id = customer_id</sub>") --> sl1
@@ -294,7 +320,7 @@ flowchart TB
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb1(customer) --> sl1
     tb2(orders) --> sl2
     sl1("σ<sub>name = 'Eve Entropia'</sub>") --> j
@@ -310,10 +336,13 @@ flowchart TB
 -->
 
 ---
-layout: two-cols
+layout: two-cols-header
 ---
 
 ## More complex join
+
+::left::
+
 ```sql {|3-4}
 SELECT *
 FROM customer
@@ -329,7 +358,7 @@ JOIN product ON (orders.product_id = product.id);
 ::right::
 
 ```mermaid
-flowchart TB
+flowchart BT
     tb1(customer) --> j1
     tb2(orders) --> j1
     j1("⋈<sub>id = customer_id</sub>") --> j2
@@ -423,7 +452,12 @@ WHERE number_of_foos = 0;
 
 ---
 layout: default
+# apply bootstrap styling to this slide. needed for pev2
 class: bootstrap
+# also needed for pev2. Otherwise, it poops itself and layouts the nodes incorrectly,
+# ending up with glitches or the whole splippy view being transformed into NaN oblivion.
+# Initially loading a slide with pev2 still breaks for some odd reason.
+preload: false
 ---
 
 <pev2 :plan-source="`
@@ -491,6 +525,7 @@ layout: default
 ---
 layout: default
 class: bootstrap
+preload: false
 ---
 ## But, is it right? EXPLAIN ANALYZE!
 * Actually executes query
@@ -501,9 +536,20 @@ class: bootstrap
 
 ---
 layout: default
-class: bootstrap
 ---
 ## Let's add an index:
+
+```sql
+SELECT *
+FROM product
+WHERE number_of_foos = 0;
+```
+
+---
+layout: default
+class: bootstrap
+preload: false
+---
 
 <pev2 :plan-source="`
 @src-quot: ./sql/queries/plan_analyze_number_of_foos_0_index.json
@@ -517,7 +563,7 @@ layout: default
 * *Page* contains data for multiple *rows*
 * We assume: Random order
 
-![Diagram of page layout](assets/pagelayout.svg)
+![Diagram of page layout](/assets/pagelayout.svg)
 
 <v-click>
 more details: Postgres MVCC
@@ -537,6 +583,7 @@ layout: default
 ---
 layout: default
 class: bootstrap
+preload: false
 ---
 ## Back at plan with index
 
@@ -557,6 +604,7 @@ WHERE number_of_foos > 0; -- 1,2,3
 ---
 layout: default
 class: bootstrap
+preload: false
 ---
 <pev2 :plan-source="`
 @src-quot: ./sql/queries/plan_analyze_number_of_foos_gt_0.json
@@ -565,6 +613,7 @@ class: bootstrap
 ---
 layout: default
 class: bootstrap
+preload: false
 ---
 ## Why would it seq scan?!
 * Answer: *Cost*
@@ -581,17 +630,20 @@ class: bootstrap
 layout: default
 ---
 ## Cost calculation: Seq Scan
-* determine number of pages of table $pages$
-* determine number of rows $rows$
+* determine number of $pages$ of table
+* determine number of $rows$
 
 
 $$
 cost = \underbrace{(pages \cdot seq\_page\_cost)}_{IO} + \underbrace{(rows \cdot cpu\_tuple\_cost)}_{CPU}
 $$
 
+<v-click>
+
 * $seq\_page\_cost$: cost factor of **sequential** page access
 * $cpu\_tuple\_cost$: cost factor of processing one tuple
 * user configurable!
+</v-click>
 
 ---
 layout: default
@@ -601,7 +653,7 @@ layout: default
 * but: Involves $random\_page\_cost$, which is typically set higher than $seq\_page\_cost$
     * seeking in file less performant than full read
     * especially on HDDs
-* so: reading *almost all* pages (random) is **slower** than just reading *all* pages sequentialy
+* so: reading *almost all* pages (randomly) is **slower** than just reading *all* pages sequentialy
 
 ---
 layout: default
@@ -612,6 +664,54 @@ layout: default
 * definitely not accurate if entire DB fits in RAM!
 * -> tuning might improve performance!
 
+---
+layout: default
+---
+## Planner overview
+* Retrieve statistics
+* Explore plans:
+    * Seq Scan VS Index Scan VS Bitmap Index scan
+    * Join order
+    * Join implementations (based on available indices, …)
+    * parallelisation
+* Estimate cost, rows per node
+    * based on # of input rows
+    * based on statistics
+    * user configurable cost factors
+* Choose plan with lowest cost
+
+---
+layout: default
+---
+## Limitations
+* Statistics are only *statistics*
+* Amount of possible plans grows with query size
+* Planning has to be quick
+    * spending more time than for running the naive query is *bad*
+
+<!--
+* statistics usually pretty good, but edge cases with big datasets possible
+* might be out of date!
+-->
+
+
+---
+layout: default
+---
+## Common Pitfalls
+* Arguments of query can change plan
+* LIMIT changes query plan (dramatically!)
+    * Not too useful for debugging
+* Planner assumes statistically independent columns
+    * might drastically mis-estimate
+    * multivariate statistics
+    * fix your schema
+
+<!--
+* Statistically dependent:
+All Cars with model 'Focus' have brand 'Ford'
+Query brand='Ford' and model='Focus' will yield wayy to low row estimate!
+-->
 
 ---
 layout: default
@@ -624,3 +724,17 @@ layout: default
 * Turn off certain planning nodes
     * compare costs with original plan
     * only ever do this for debugging!
+* Tune configurable cost factors
+    * careful! might backfire
+
+<!--
+EXPLAIN only shows you chosen plan, not other alternatives that were considered
+-->
+
+---
+layout: default
+---
+## Further reading
+* Chapters on using EXPLAIN in the Postgres Docs: https://www.postgresql.org/docs/current/performance-tips.html
+* Chapter on query planner configuration: https://www.postgresql.org/docs/current/runtime-config-query.html
+* In-Depth info on MVCC in Postgres: https://www.interdb.jp/pg/pgsql05.html
