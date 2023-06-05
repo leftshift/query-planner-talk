@@ -92,6 +92,14 @@ FROM customer;
 @src: ./markdown/tables/customer_projected.md
 </v-click>
 
+<!--
+* Symbol used for operator: uppercase Pi
+* Arguments (columns) given in subscript
+* looks funny in some fonts
+* corresponds to SELECT part
+* Start with all table rows (and columns), project down to some
+-->
+
 ---
 layout: two-cols-header
 ---
@@ -117,6 +125,16 @@ WHERE registration_date > 2021-01-01;
 
 @src: ./markdown/tables/customer_selected.md
 </v-click>
+
+<!--
+* Lower case sigma
+* Something unfortunate happens:
+    * corresponds to WHERE clause
+    * NOT SELECT
+    * I think SQL people are to blame
+    * Bear with me. I know this is a bit confusing
+* Filters rows based on condition
+-->
 
 ---
 layout: two-cols-header
@@ -150,6 +168,11 @@ JOIN orders ON (customer.id = orders.customer_id)
 @src: ./markdown/tables/customer_order_join.md
 
 </v-click>
+
+<!--
+* Not the usual join used in basic relational algebra
+* But most general that's easy to understand
+-->
 ---
 layout: section
 ---
@@ -171,6 +194,15 @@ FROM customer
 WHERE registration_date > 2021-01-01;
 ```
 
+<v-click>
+
+### General order:
+* Tables
+* Joins
+* Selection
+* Projection
+</v-click>
+
 ::right::
 
 ```mermaid
@@ -180,13 +212,17 @@ flowchart BT
 
 ```
 
+<!--
+* read query on left side
+* discuss tree: data from bottom to top, root is result
+-->
 ---
 layout: default
 ---
 
 ## Rule: Splitting Projections
 
-$R$ with columns $a, b, c$.
+Table $R$ with columns $a, b, c$.
 
 $\Pi_{a}(R) = \Pi_{a}(\Pi_{a,b}(R))$
 
@@ -224,6 +260,13 @@ flowchart BT
     sl(σ<sub>registration_date > 2021-01-01</sub>) -->  pr2(Π<sub>name</sub>) 
 ```
 
+<!--
+Why?
+* Reduce size of intermediary sets
+* Imagine result of each node needs to be stored in RAM
+* Less columns -> less space, faster processingo
+-->
+
 ---
 layout: two-cols
 ---
@@ -249,6 +292,12 @@ flowchart BT
     pr(Π<sub>name, product_id, order_time</sub>)
 ```
 
+<!--
+* let's look at more complex query (read)
+* join two tables
+* naive order, again: Tables, Join, Selection, Projection
+-->
+
 ---
 layout: default
 ---
@@ -263,15 +312,20 @@ $$
 
 <v-clicks>
 
-* conditions joined by *and* can be split
+* conditions joined by *AND* can be split
 * order does not matter
 </v-clicks>
+
+<!--
+* roof thing: logical AND
+* conditions a and b, table R
+-->
 
 ---
 layout: two-cols-header
 ---
 
-## Optimisation: Push up selection
+## Separate Selection
 
 ::left::
 
@@ -296,7 +350,9 @@ flowchart BT
 ```
 
 <!--
-* Note: Each selection only applies to a single table!
+* First, let's separate selection in two
+* so far, no benefit
+* but note: Each selection only applies to a single table!
 -->
 
 ---
@@ -330,7 +386,7 @@ flowchart BT
 ```
 
 <!--
-* Reduce size of intermediary sets!
+* Again: Reduce size of intermediary sets!
 * Don't need to join all customers with all orders ever (potentially huge!)
 * Helps actual databases even more, as we'll see later
 -->
@@ -343,7 +399,7 @@ layout: two-cols-header
 
 ::left::
 
-```sql {|3-4}
+```sql {|2-4}
 SELECT *
 FROM customer
 JOIN orders ON (customer.id = orders.customer_id)
@@ -366,6 +422,10 @@ flowchart BT
     j2("⋈<sub>product_id = id</sub>") --> pr
     pr(Π<sub>*</sub>)
 ```
+
+<!--
+* draw arrow from `orders` to top join, lower join to above top join
+-->
 
 ---
 layout: section
@@ -415,6 +475,7 @@ layout: default
 <!--
 * Worst thing that could happen: We optimize a query and it's *incorrect*
 * So, we get a different result than the one from the 'naive' plan
+
 ca. 20 min
 -->
 
@@ -423,6 +484,9 @@ layout: section
 ---
 
 # Part II: Opening Postgres' Hood
+<!--
+short breather...
+-->
 
 ---
 layout: default
@@ -432,6 +496,12 @@ layout: default
 * `EXPLAIN SELECT …`: Ask database for *Query Plan*
 * -> Doesn't execute query!
 * Similar tree structure as relational algebra
+
+<!--
+* Most important tool!
+* Usual output: indented text
+* In this talk: JSON output, use visualizer
+-->
 
 ---
 layout: default
@@ -464,7 +534,15 @@ preload: false
 @src-quot: ./sql/queries/plan_number_of_foos_0.json
 `" plan-query="query"></pev2>
 
-
+<!--
+* open node
+* explain seq scan: go through all rows
+* Filter in `Misc` = Selection
+* Cols in `Output` = Projection
+* Kinda bunched together into one node
+* But: Rules from rel. Algebra still apply if we want to move these between nodes
+* Number of Rows in `General` -> next slide
+-->
 ---
 layout: default
 ---
@@ -512,6 +590,10 @@ WHERE tablename='product' AND attname='number_of_foos';
 * -> 25% of all rows have `number_of_foos = 0`
 </v-click>
 
+<!--
+* Ask database about statistics: Query special view.
+* vals and freqs belong together
+-->
 
 ---
 layout: default
