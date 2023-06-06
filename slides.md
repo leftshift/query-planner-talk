@@ -11,7 +11,7 @@ drawings:
 transition: slide-left
 css: unocss
 layout: cover
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: assets/intro.jpg
 title: Postgres Query Planning
 canvasWidth: 850
 ---
@@ -57,7 +57,6 @@ layout: default
 ### `customer`
 @src: ./markdown/tables/customer_full.md
 
-<br />
 <br />
 
 ### `orders`
@@ -152,7 +151,7 @@ JOIN orders ON (customer.id = orders.customer_id)
 
 @src: ./markdown/tables/customer_full.md
 
-<div class='text-center text-3xl p-1'>
+<div class='text-center text-3xl p-0'>
     <tabler-plus />
 </div>
 
@@ -506,9 +505,8 @@ layout: default
 ---
 layout: default
 ---
-
-TODO: Table Columns of product
-Mention distribution here?
+## Table `product`
+@src: markdown/tables/product_gist.md
 
 ---
 layout: default
