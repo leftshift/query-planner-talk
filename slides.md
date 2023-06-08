@@ -1,6 +1,6 @@
 ---
 theme: ./theme
-highlighter: shiki
+highlighter: prism
 lineNumbers: false
 info: |
   ## Introduction to query planning
@@ -11,14 +11,16 @@ drawings:
 transition: slide-left
 css: unocss
 layout: cover
-background: assets/intro.jpg
+background: /assets/intro.jpg
 title: Postgres Query Planning
 canvasWidth: 850
 ---
 
 # Postgres Query Planning
-## *How I learned to love the Query Planner*
 
+<!--
+Reset timer!
+-->
 
 ---
 layout: statement
@@ -115,7 +117,10 @@ WHERE registration_date > 2021-01-01;
 
 ::right::
 
+<v-click>
+
 @src: ./markdown/tables/customer_full.md
+</v-click>
 
 <v-click>
 <div class='text-center text-3xl p-5'>
@@ -216,10 +221,12 @@ flowchart BT
 * discuss tree: data from bottom to top, root is result
 -->
 ---
-layout: default
+layout: two-cols-header
 ---
 
 ## Rule: Splitting Projections
+
+::left::
 
 Table $R$ with columns $a, b, c$.
 
@@ -227,7 +234,33 @@ $\Pi_{a}(R) = \Pi_{a}(\Pi_{a,b}(R))$
 
 <v-click>
 
-We can *throw away* some columns earlier if we want to.
+* We can *throw away* some columns earlier if we want to.
+</v-click>
+
+::right::
+<v-click>
+
+| a     | b     | c 	|
+|------ |------	|------	|
+| …     | …     | …     |
+
+<div class='text-center text-3xl p-1'>
+    <tabler-arrow-down /> Π<sub>a, b</sub>
+</div>
+
+| a     | b     |
+|------ |------	|
+| …     | …     |
+
+<div class='text-center text-3xl p-1'>
+    <tabler-arrow-down /> Π<sub>a</sub>
+</div>
+
+| a     |
+|------ |
+| …     |
+
+
 </v-click>
 
 ---
@@ -358,7 +391,7 @@ flowchart BT
 layout: two-cols-header
 ---
 
-## Optimisation: Push up selection
+## Optimisation: Push down selection
 
 ::left::
 
@@ -465,7 +498,7 @@ layout: default
 ## Where we are
 
 * Some optimisations (almost) always make sense
-    * Pushing up selections
+    * Pushing down selections
     * Projecting early
 * Some choices are harder and less obvious
     * Simple rules not enough
@@ -549,7 +582,7 @@ layout: default
 * Statistics!
 * Collected
     * When running an `ANALYZE $table`
-    * During Autovauccum
+    * During Autovaucuum
 
 ---
 layout: default
@@ -620,10 +653,19 @@ layout: default
 ## Let's add an index:
 
 ```sql
+CREATE INDEX ON product (number_of_foos);
+```
+
+<v-click>
+
+### Our query, again:
+
+```sql
 SELECT *
 FROM product
 WHERE number_of_foos = 0;
 ```
+</v-click>
 
 ---
 layout: default
@@ -649,7 +691,7 @@ layout: default
 more details: Postgres MVCC
 </v-click>
 ---
-layout: default
+layout: two-cols
 ---
 ## Bitmap Index Scan:
 * Create bitmap, one bit for each page
@@ -659,6 +701,30 @@ layout: default
 ## Bitmap Heap Scan:
 * Go through pages returned by index
 * Filter rows based on *recheck condition*
+
+::right::
+
+<v-click>
+```mermaid
+flowchart TB
+    r((1)) --> l0((0))
+    l0 --> m0((0))
+    l0 --> m1((1))
+    r --> l1((2))
+    l1 --> m2((2))
+    l1 --> m3((3))
+    m0 --> n0("`row0
+    page: 9`")
+    m0 --> n1("`row1
+    page: 2`")
+    m0 --> n2("…")
+    m2 ~~~ n3("…")
+```
+</v-click>
+
+<!--
+Concept of index tree in postgres. Actual Postgres indices different (b-tree)
+-->
 
 ---
 layout: default
@@ -725,6 +791,10 @@ $$
 * user configurable!
 </v-click>
 
+<!--
+Segment File
+-->
+
 ---
 layout: default
 ---
@@ -740,7 +810,7 @@ layout: default
 ---
 ## Sidenote: Tuning
 * *lots* of assumtions in those cost factors!
-* not necessarily accurate for flash storage
+* difference not as big on flash storage
 * definitely not accurate if entire DB fits in RAM!
 * -> tuning might improve performance!
 
@@ -776,21 +846,21 @@ layout: default
 
 
 ---
-layout: default
+layout: two-cols-header
 ---
 ## Common Pitfalls
+
 * Arguments of query can change plan
 * LIMIT changes query plan (dramatically!)
     * Not too useful for debugging
 * Planner assumes statistically independent columns
-    * might drastically mis-estimate
-    * multivariate statistics
-    * fix your schema
-
+    * $10\%$ `brand="Ford"`, $1\%$ `model="Focus"`
+    * `brand="Ford" AND model="Focus"` -> $10\% \cdot 1\%= 0.1\%$
+    * Actual fraction: $1\%$
+    * -> multivariate statistics
+    * -> fix your schema
 <!--
-* Statistically dependent:
 All Cars with model 'Focus' have brand 'Ford'
-Query brand='Ford' and model='Focus' will yield wayy to low row estimate!
 -->
 
 ---
@@ -818,3 +888,4 @@ layout: default
 * Chapters on using EXPLAIN in the Postgres Docs: https://www.postgresql.org/docs/current/performance-tips.html
 * Chapter on query planner configuration: https://www.postgresql.org/docs/current/runtime-config-query.html
 * In-Depth info on MVCC in Postgres: https://www.interdb.jp/pg/pgsql05.html
+* Query plan visualizer used in the slides: https://github.com/dalibo/pev2
