@@ -502,7 +502,7 @@ layout: default
     * Projecting early
 * Some choices are harder and less obvious
     * Simple rules not enough
-    * But: Relational Algebra as basis for *correctnes*
+    * But: Relational Algebra as basis for *correctness*
 
 <!--
 * Worst thing that could happen: We optimize a query and it's *incorrect*
@@ -623,6 +623,7 @@ WHERE tablename='product' AND attname='number_of_foos';
 
 <!--
 * Ask database about statistics: Query special view.
+* curly braces: Postgres Array
 * vals and freqs belong together
 -->
 
