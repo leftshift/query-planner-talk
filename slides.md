@@ -10,6 +10,9 @@ drawings:
   persist: false
 transition: slide-left
 css: unocss
+fonts:
+  mono: "PT Mono"
+  provider: none
 layout: cover
 background: /assets/intro.jpg
 title: Postgres Query Planning
