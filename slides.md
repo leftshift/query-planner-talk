@@ -13,6 +13,7 @@ css: unocss
 fonts:
   mono: "PT Mono"
   provider: none
+favicon: /assets/favicon.png
 layout: cover
 background: /assets/intro.jpg
 title: Postgres Query Planning
