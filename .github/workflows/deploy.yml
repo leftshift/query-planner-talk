@@ -14,6 +14,8 @@ jobs:
         run:  npm i -g @slidev/cli
       - name: Build
         run: slidev build --base /query-planner-talk/
+      - name: Copy intro image (I'm so over web stuff)
+        run: cp assets/intro.jpg dist/assets/intro.jpg
       - name: Deploy pages
         uses: crazy-max/ghaction-github-pages@v2
         with:
